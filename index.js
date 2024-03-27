@@ -601,6 +601,9 @@ class TuyaDevice extends EventEmitter {
       }
     });
 
+    // enable keep-alive on socket with initial delay of 5000ms (even though there is a status get every 10s) -- rethink this addition
+    this.client.setKeepAlive(true, 5000);
+
     // Add event listeners to socket
 
     // Parse response data
