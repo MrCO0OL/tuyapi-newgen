@@ -43,17 +43,11 @@
     "debug": "^4.3.4",
     "p-queue": "6.6.2",
     "p-retry": "4.6.2",
-    "p-timeout": "3.2.0"
+    "p-timeout": "3.2.0",
+    "tuyapi-newgen": "github:MrCo0ol/tuyapi-newgen"
   },
   "devDependencies": {
-    "@tuyapi/stub": "0.3.0",
-    "ava": "2.4.0",
-    "clone": "2.1.2",
-    "coveralls": "3.1.1",
-    "delay": "4.4.1",
-    "documentation": "^12.3.0",
-    "nyc": "15.1.0",
-    "xo": "0.25.4"
+    "documentation": "^14.0.0"
   },
   "xo": {
     "space": true,
