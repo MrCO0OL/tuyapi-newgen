@@ -95,6 +95,8 @@ class TuyaDevice extends EventEmitter {
     this._responseTimeout = 2; // Seconds
     this._connectTimeout = 5; // Seconds
     this._pingPongPeriod = 10; // Seconds
+    this._keepAlive = true;
+    this._initialDelay = 5; //seconds
     this._pingPongTimeout = null;
     this._lastPingAt = new Date();
 
@@ -601,8 +603,8 @@ class TuyaDevice extends EventEmitter {
       }
     });
 
-    // enable keep-alive on socket with initial delay of 5000ms (even though there is a status get every 10s) -- rethink this addition
-    this.client.setKeepAlive(true, 5000);
+    // enable/disable TCP KeepAlive on socket with initial delay in ms (even though there is a status pull every 10s) -- rethink this change
+    this.client.setKeepAlive(this._keepAlive, this._initialDelay * 1000);
 
     // Add event listeners to socket
 
