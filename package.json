@@ -1,0 +1,75 @@
+{
+  "name": "tuyapi-newgen",
+  "version": "8.0.0",
+  "description": "An easy-to-use New Gen API for devices that use Tuya's cloud services",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "lib/**/*",
+    "index.js",
+    "index.d.ts"
+  ],
+  "scripts": {
+    "lint": "xo",
+    "test": "npx ava --concurrency 1",
+    "coverage": "nyc npm test && nyc report --reporter=lcov",
+    "document": "documentation build index.js -f html -o docs --config documentation.yml",
+    "prepublishOnly": "npm test",
+    "preversion": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrCO0OL/tuyapi-newgen.git"
+  },
+  "keywords": [
+    "tuya",
+    "iot",
+    "plug",
+    "jinvoo",
+    "switch",
+    "api",
+    "socket",
+    "protocol",
+    "loytec",
+    "demir"
+  ],
+  "author": "Demir Deniz <demir.y.deniz@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MrCO0OL/tuyapi-newgen/issues"
+  },
+  "homepage": "https://github.com/MrCO0OL/tuyapi-newgen#readme",
+  "dependencies": {
+    "debug": "^4.3.4",
+    "p-queue": "6.6.2",
+    "p-retry": "4.6.2",
+    "p-timeout": "3.2.0"
+  },
+  "devDependencies": {
+    "@tuyapi/stub": "0.3.0",
+    "ava": "2.4.0",
+    "clone": "2.1.2",
+    "coveralls": "3.1.1",
+    "delay": "4.4.1",
+    "documentation": "^12.3.0",
+    "nyc": "15.1.0",
+    "xo": "0.25.4"
+  },
+  "xo": {
+    "space": true,
+    "ignores": [
+      "docs"
+    ],
+    "rules": {
+      "max-len": "off",
+      "indent": [
+        "error",
+        2,
+        {
+          "ObjectExpression": "first",
+          "ArrayExpression": "first"
+        }
+      ]
+    }
+  }
+}
