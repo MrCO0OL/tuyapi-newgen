@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "lint": "xo",
-    "test": "npx ava --concurrency 1",
+    "test": "echo \"Error: no test specified\" && exit 1",
     "coverage": "nyc npm test && nyc report --reporter=lcov",
     "document": "documentation build index.js -f html -o docs --config documentation.yml",
     "prepublishOnly": "npm test",
