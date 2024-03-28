@@ -1,6 +1,6 @@
 {
   "name": "tuyapi-newgen",
-  "version": "8.0.0",
+  "version": "8.0.1",
   "description": "An easy-to-use New Gen API for devices that use Tuya's cloud services",
   "main": "index.js",
   "types": "index.d.ts",
@@ -41,8 +41,7 @@
     "debug": "^4.3.4",
     "p-queue": "6.6.2",
     "p-retry": "4.6.2",
-    "p-timeout": "3.2.0",
-    "tuyapi-newgen": "github:MrCo0ol/tuyapi-newgen"
+    "p-timeout": "3.2.0"
   },
   "devDependencies": {
     "documentation": "^14.0.0"
