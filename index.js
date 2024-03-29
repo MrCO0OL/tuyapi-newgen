@@ -52,7 +52,10 @@ class TuyaDevice extends EventEmitter {
     nullPayloadOnJSONError = false,
     issueGetOnConnect = true,
     issueRefreshOnConnect = false,
-    issueRefreshOnPing = false
+    issueRefreshOnPing = false,
+    KeepAlive = true,
+    initialDelay = 5000,
+    socketTimeout = 5000
   } = {}) {
     super();
 
@@ -62,7 +65,10 @@ class TuyaDevice extends EventEmitter {
     this.globalOptions = {
       issueGetOnConnect,
       issueRefreshOnConnect,
-      issueRefreshOnPing
+      issueRefreshOnPing,
+      KeepAlive,
+      initialDelay,
+      socketTimeout
     };
 
     this.nullPayloadOnJSONError = nullPayloadOnJSONError;
@@ -93,10 +99,10 @@ class TuyaDevice extends EventEmitter {
     this._connected = false;
 
     this._responseTimeout = 2; // Seconds
-    this._connectTimeout = 5; // Seconds
-    this._pingPongPeriod = 10; // Seconds
-    this._keepAlive = true;
-    this._initialDelay = 5; //seconds
+    this._connectTimeout = this.globalOptions.socketTimeout; //   5; // Seconds
+    this._pingPongPeriod = 60; //10; // Seconds
+    //this._keepAlive = this.globalOptions.KeepAlive; //true;
+    //this._initialDelay = this.globalOptions.initialDelay; // 5000; //milli seconds
     this._pingPongTimeout = null;
     this._lastPingAt = new Date();
 
@@ -586,7 +592,7 @@ class TuyaDevice extends EventEmitter {
     // Default connect timeout is ~1 minute,
     // 5 seconds is a more reasonable default
     // since `retry` is used.
-    this.client.setTimeout(this._connectTimeout * 1000, () => {
+    this.client.setTimeout(this._connectTimeout, () => {
       /**
        * Emitted on socket error, usually a
        * result of a connection timeout.
@@ -603,8 +609,8 @@ class TuyaDevice extends EventEmitter {
       }
     });
 
-    // enable/disable TCP KeepAlive on socket with initial delay in ms (even though there is a status pull every 10s) -- rethink this change
-    this.client.setKeepAlive(this._keepAlive, this._initialDelay * 1000);
+    // enable/disable TCP KeepAlive on socket with initial delay in ms (even though there is a pingPong every 10s) -- rethink this change
+    this.client.setKeepAlive(this.globalOptions.KeepAlive, this.globalOptions.initialDelay);
 
     // Add event listeners to socket
 
