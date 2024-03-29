@@ -55,7 +55,8 @@ class TuyaDevice extends EventEmitter {
     issueRefreshOnPing = false,
     KeepAlive = true,
     initialDelay = 5000,
-    socketTimeout = 5000
+    socketTimeout = 5000,
+    HeartBeatInterval = 25
   } = {}) {
     super();
 
@@ -68,7 +69,8 @@ class TuyaDevice extends EventEmitter {
       issueRefreshOnPing,
       KeepAlive,
       initialDelay,
-      socketTimeout
+      socketTimeout,
+      HeartBeatInterval
     };
 
     this.nullPayloadOnJSONError = nullPayloadOnJSONError;
@@ -99,8 +101,8 @@ class TuyaDevice extends EventEmitter {
     this._connected = false;
 
     this._responseTimeout = 2; // Seconds
-    this._connectTimeout = this.globalOptions.socketTimeout; //   5; // Seconds
-    this._pingPongPeriod = 25; //10; // Seconds
+    this._connectTimeout = this.globalOptions.socketTimeout; //   it was 5; // Seconds
+    this._pingPongPeriod = this.globalOptions.HeartBeatInterval; //it was 10; // Seconds
     //this._keepAlive = this.globalOptions.KeepAlive; //true;
     //this._initialDelay = this.globalOptions.initialDelay; // 5000; //milli seconds
     this._pingPongTimeout = null;
