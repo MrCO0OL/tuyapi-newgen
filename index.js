@@ -101,10 +101,10 @@ class TuyaDevice extends EventEmitter {
     this._connected = false;
 
     this._responseTimeout = 2; // Seconds
-    this._connectTimeout = this.globalOptions.socketTimeout; //   it was 5; // Seconds
-    this._pingPongPeriod = this.globalOptions.HeartBeatInterval; //it was 10; // Seconds
+    this._connectTimeout = this.globalOptions.socketTimeout; // milli-Seconds
+    this._pingPongPeriod = this.globalOptions.HeartBeatInterval; // Seconds
     //this._keepAlive = this.globalOptions.KeepAlive; //true;
-    //this._initialDelay = this.globalOptions.initialDelay; // 5000; //milli seconds
+    //this._initialDelay = this.globalOptions.initialDelay; //milli-seconds
     this._pingPongTimeout = null;
     this._lastPingAt = new Date();
 
