@@ -610,7 +610,8 @@ class TuyaDevice extends EventEmitter {
     });
 
     // enable/disable TCP KeepAlive on socket with initial delay in ms (even though there is a pingPong every 10s) -- rethink this change
-    this.client.setKeepAlive(this.globalOptions.KeepAlive, this.globalOptions.initialDelay);
+    if(this.globalOptions.KeepAlive)
+      this.client.setKeepAlive(this.globalOptions.KeepAlive, this.globalOptions.initialDelay);
 
     // Add event listeners to socket
 
