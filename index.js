@@ -1023,7 +1023,7 @@ class TuyaDevice extends EventEmitter {
         this.device.gwID = dataRes.payload.gwId;
 
         // console log the found device
-        console.log(`Found device ip=${this.device.ip} id=${this.device.id}`);
+        console.log(`<<<<< ****** Found device ip=${this.device.ip} id=${this.device.id} ****** >>>>>`);
 
         // Change product key if neccessary
         this.device.productKey = dataRes.payload.productKey;
@@ -1032,7 +1032,10 @@ class TuyaDevice extends EventEmitter {
         if (this.device.version !== dataRes.payload.version) {
           this.device.version = dataRes.payload.version;
 
-          // Update the parser
+        // console log the found device
+        console.log(`<<<<< ****** Found device ip=${this.device.ip} id=${this.device.id}  version=${this.device.version} ****** >>>>>`);
+
+        // Update the parser
           this.device.parser = new MessageParser({
             key: this.device.key,
             version: this.device.version
