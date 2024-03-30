@@ -1,6 +1,6 @@
 {
   "name": "@demirdeniz/tuyapi-newgen",
-  "version": "8.0.4",
+  "version": "8.0.5",
   "description": "An easy-to-use New Gen API for devices that use Tuya's cloud services",
   "main": "index.js",
   "types": "index.d.ts",

@@ -1022,6 +1022,9 @@ class TuyaDevice extends EventEmitter {
         this.device.id = dataRes.payload.gwId;
         this.device.gwID = dataRes.payload.gwId;
 
+        // console log the found device
+        console.log(`Found device ip=${this.device.ip} id=${this.device.id}`);
+
         // Change product key if neccessary
         this.device.productKey = dataRes.payload.productKey;
 
