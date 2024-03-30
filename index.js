@@ -1029,9 +1029,6 @@ class TuyaDevice extends EventEmitter {
         if (this.device.version !== dataRes.payload.version) {
           this.device.version = dataRes.payload.version;
 
-        // console log the found device
-        console.log(`<<<<< ****** Found device ip=${this.device.ip} id=${this.device.id}  version = ${this.device.version} ****** >>>>>`);
-
         // Update the parser
           this.device.parser = new MessageParser({
             key: this.device.key,
@@ -1039,6 +1036,10 @@ class TuyaDevice extends EventEmitter {
           });
         }
 
+        // console log the found device
+        console.log(`<<<<< ****** Found device ip=${this.device.ip} id=${this.device.id}  version = ${this.device.version} ****** >>>>>`);
+        
+        
         // Cleanup
         listener.close();
         listener.removeAllListeners();
