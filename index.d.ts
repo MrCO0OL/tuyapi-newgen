@@ -13,6 +13,7 @@ declare module 'tuyapi-newgen' {
         issueGetOnConnect?: boolean;
         issueRefreshOnConnect?: boolean;
         issueRefreshOnPing?: boolean;
+        enableDebug?: boolean;
     }
 
     type UnionTypes = Object|number|string|boolean;

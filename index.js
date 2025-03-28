@@ -36,6 +36,7 @@ const {UDP_KEY} = require('./lib/config');
  * connection is established. This should probably be `false` in synchronous usage.
  * @param {Boolean} [options.issueRefreshOnPing=false] if true, sends DP_REFRESH and GET request after
  * every ping. This should probably be `false` in synchronous usage.
+ * @param {Boolean} [options.enableDebug=false] if true, will print debug messages to console.
  * @example
  * const tuya = new TuyaDevice({id: 'xxxxxxxxxxxxxxxxxxxx',
  *                              key: 'xxxxxxxxxxxxxxxx'})
@@ -48,7 +49,7 @@ class TuyaDevice extends EventEmitter {
     gwID = id,
     key,
     productKey,
-    version = 3.1,
+    version = 3.3,
     nullPayloadOnJSONError = false,
     issueGetOnConnect = true,
     issueRefreshOnConnect = false,
@@ -56,7 +57,8 @@ class TuyaDevice extends EventEmitter {
     KeepAlive = true,
     initialDelay = 5000,
     socketTimeout = 5000,
-    HeartBeatInterval = 25
+    HeartBeatInterval = 25,
+    enableDebug = false
   } = {}) {
     super();
 
@@ -70,7 +72,8 @@ class TuyaDevice extends EventEmitter {
       KeepAlive,
       initialDelay,
       socketTimeout,
-      HeartBeatInterval
+      HeartBeatInterval,
+      enableDebug
     };
 
     this.nullPayloadOnJSONError = nullPayloadOnJSONError;
@@ -94,6 +97,10 @@ class TuyaDevice extends EventEmitter {
 
     // Contains array of found devices when calling .find()
     this.foundDevices = [];
+
+    if (this.enableDebug)
+      require('debug').enable('TuyAPI-NewGen');
+      //process.env.DEBUG = "TuyAPI-NewGen";
 
     // Private instance variables
 
