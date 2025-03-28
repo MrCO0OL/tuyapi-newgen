@@ -628,6 +628,15 @@ class TuyaDevice extends EventEmitter {
    * @emits TuyaDevice#error
    */
   connect() {
+
+    if (this.enableDebug) {
+      require('debug').enable('TuyAPI-NewGen');
+      process.env.DEBUG = "TuyAPI-NewGen";
+      debug("<<<<<<<<**********  Debug Enabled 2 **********>>>>>>>>>");
+      console.log("<<<<<< tried to enable debug logging 2 >>>>>>");
+    } else
+      console.log("******debug flag is false *****");
+    
     if (this.isConnected()) {
       // Return if already connected
       return Promise.resolve(true);
