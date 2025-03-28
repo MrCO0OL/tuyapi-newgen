@@ -157,7 +157,7 @@ class TuyaDevice extends EventEmitter {
       payload.cid = options.cid;
     }
 
-    const commandByte = this.device.version === '3.4' ? CommandType.DP_QUERY_NEW : CommandType.DP_QUERY;
+    const commandByte = this.device.version === '3.4' || this.device.version === '3.5' ? CommandType.DP_QUERY_NEW : CommandType.DP_QUERY;
 
     // Create byte buffer
     const buffer = this.device.parser.encode({
@@ -377,7 +377,7 @@ class TuyaDevice extends EventEmitter {
       };
     }
 
-    if (this.device.version === '3.4') {
+    if (this.device.version === '3.4' || this.device.version === '3.5') {
       /*
       {
         "data": {
@@ -402,14 +402,14 @@ class TuyaDevice extends EventEmitter {
       delete payload.data.t;
     }
 
-    if (options.shouldWaitForResponse && this._setResolver) {
-      throw new Error('A set command is already in progress. Can not issue a second one that also should return a response.');
-    }
+    //if (options.shouldWaitForResponse && this._setResolver) {
+    //  throw new Error('A set command is already in progress. Can not issue a second one that also should return a response.');
+    //}
 
     debug('SET Payload:');
     debug(payload);
 
-    const commandByte = this.device.version === '3.4' ? CommandType.CONTROL_NEW : CommandType.CONTROL;
+    const commandByte = this.device.version === '3.4' || this.device.version === '3.5' ? CommandType.CONTROL_NEW : CommandType.CONTROL;
     const sequenceN = ++this._currentSequenceN;
     // Encode into packet
     const buffer = this.device.parser.encode({
@@ -419,19 +419,43 @@ class TuyaDevice extends EventEmitter {
       sequenceN
     });
 
+    // Make sure we only resolve or reject once
+    let resolvedOrRejected = false;
+
     // Queue this request and limit concurrent set requests to one
     return this._setQueue.add(() => pTimeout(new Promise((resolve, reject) => {
+      if (options.shouldWaitForResponse && this._setResolver) {
+        throw new Error('A set command is already in progress. Can not issue a second one that also should return a response.');
+      }
+
       // Send request and wait for response
       try {
+        if (this.device.version === '3.5') {
+          this._currentSequenceN++;
+        }
+
         // Send request
-        this._send(buffer);
+        this._send(buffer).catch(error => {
+          if (options.shouldWaitForResponse && !resolvedOrRejected) {
+            resolvedOrRejected = true;
+            reject(error);
+          }
+        });
         if (options.shouldWaitForResponse) {
-          this._setResolver = resolve;
+          this._setResolver = data => {
+            if (!resolvedOrRejected) {
+              resolvedOrRejected = true;
+              resolve(data);
+            }
+          };
+          
           this._setResolveAllowGet = options.isSetCallToGetData;
         } else {
+          resolvedOrRejected = true;
           resolve();
         }
       } catch (error) {
+        resolvedOrRejected = true;
         reject(error);
       }
     }), this._responseTimeout * 2500, () => {
@@ -445,6 +469,10 @@ class TuyaDevice extends EventEmitter {
         'error',
         'Timeout waiting for status response from device id: ' + this.device.id
       );
+      if (!resolvedOrRejected) {
+        resolvedOrRejected = true;
+        throw new Error('Timeout waiting for status response from device id: ' + this.device.id);
+      }
     }));
   }
 
@@ -454,7 +482,7 @@ class TuyaDevice extends EventEmitter {
    * wraps the entire operation in a retry.
    * @private
    * @param {Buffer} buffer buffer of data
-   * @returns {Promise<Any>} returned data for request
+   * @returns {Promise<any>} returned data for request
    */
   _send(buffer) {
     const sequenceNo = this._currentSequenceN;
@@ -497,11 +525,16 @@ class TuyaDevice extends EventEmitter {
     // Check for response
     const now = new Date();
 
-    this._pingPongTimeout = setTimeout(() => {
-      if (this._lastPingAt < now) {
-        this.disconnect();
-      }
-    }, this._responseTimeout * 1000);
+    if (this._pingPongTimeout === null) {
+      // If we do not expect a pong from a former ping, we need to set a timeout
+      this._pingPongTimeout = setTimeout(() => {
+        if (this._lastPingAt < now) {
+          this.disconnect();
+        }
+      }, this._responseTimeout * 1000);
+    } else {
+      debug('There was no response to the last ping.');
+    }
 
     // Send ping
     this.client.write(buffer);
@@ -551,13 +584,19 @@ class TuyaDevice extends EventEmitter {
     // Automatically ask for dp_refresh so we
     // can emit a `dp_refresh` event as soon as possible
     if (this.globalOptions.issueRefreshOnConnect) {
-      this.refresh();
+      this.refresh().catch(error => {
+        debug('Error refreshing on connect: ' + error);
+        this.emit('error', error);
+      });
     }
 
     // Automatically ask for current state so we
     // can emit a `data` event as soon as possible
     if (this.globalOptions.issueGetOnConnect) {
-      this.get();
+      this.get().catch(error => {
+        debug('Error getting on connect: ' + error);
+        this.emit('error', error);
+      });
     }
 
     // Resolve
@@ -685,7 +724,7 @@ class TuyaDevice extends EventEmitter {
       // Remove connect timeout
       this.client.setTimeout(0);
 
-      if (this.device.version === '3.4') {
+      if (this.device.version === '3.4' || this.device.version === '3.5') {
         // Negotiate session key then emit 'connected'
         // 16 bytes random + 32 bytes hmac
         try {
@@ -697,10 +736,10 @@ class TuyaDevice extends EventEmitter {
             sequenceN: ++this._currentSequenceN
           });
 
-          debug('Protocol 3.4: Negotiate Session Key - Send Msg 0x03');
+          debug('Protocol 3.4, 3.5: Negotiate Session Key - Send Msg 0x03');
           this.client.write(buffer);
         } catch (error) {
-          debug('Error binding key for protocol 3.4: ' + error);
+          debug('Error binding key for protocol 3.4, 3.5: ' + error);
         }
 
         return;
@@ -719,17 +758,21 @@ class TuyaDevice extends EventEmitter {
     // Response was received, so stop waiting
     clearTimeout(this._sendTimeout);
 
-    // Protocol 3.4 - Response to Msg 0x03
+    // Protocol 3.4, 3.5 - Response to Msg 0x03
     if (packet.commandByte === CommandType.SESS_KEY_NEG_RES) {
       if (!this.connectPromise) {
-        debug('Protocol 3.4: Ignore Key exchange message because no connection in progress.');
+        debug('Protocol 3.4, 3.5: Ignore Key exchange message because no connection in progress.');
         return;
       }
 
       // 16 bytes _tmpRemoteKey and hmac on _tmpLocalKey
       this._tmpRemoteKey = packet.payload.subarray(0, 16);
-      debug('Protocol 3.4: Local Random Key: ' + this._tmpLocalKey.toString('hex'));
-      debug('Protocol 3.4: Remote Random Key: ' + this._tmpRemoteKey.toString('hex'));
+      debug('Protocol 3.4, 3.5: Local Random Key: ' + this._tmpLocalKey.toString('hex'));
+      debug('Protocol 3.4, 3.5: Remote Random Key: ' + this._tmpRemoteKey.toString('hex'));
+
+      if (this.device.version === '3.4' || this.device.version === '3.5') {
+        this._currentSequenceN = packet.sequenceN - 1;
+      }
 
       const calcLocalHmac = this.device.parser.cipher.hmac(this._tmpLocalKey).toString('hex');
       const expLocalHmac = packet.payload.slice(16, 16 + 32).toString('hex');
@@ -760,9 +803,14 @@ class TuyaDevice extends EventEmitter {
         this.sessionKey[i] = this._tmpLocalKey[i] ^ this._tmpRemoteKey[i];
       }
 
-      this.sessionKey = this.device.parser.cipher._encrypt34({data: this.sessionKey});
-      debug('Protocol 3.4: Session Key: ' + this.sessionKey.toString('hex'));
-      debug('Protocol 3.4: Initialization done');
+      if (this.device.version === '3.4') {
+        this.sessionKey = this.device.parser.cipher._encrypt34({data: this.sessionKey});
+      } else if (this.device.version === '3.5') {
+        this.sessionKey = this.device.parser.cipher._encrypt35({data: this.sessionKey, iv: this._tmpLocalKey});
+      }
+
+      debug('Protocol 3.4, 3.5: Session Key: ' + this.sessionKey.toString('hex'));
+      debug('Protocol 3.4, 3.5: Initialization done');
 
       this.device.parser.cipher.setSessionKey(this.sessionKey);
       this.device.key = this.sessionKey;
@@ -778,6 +826,8 @@ class TuyaDevice extends EventEmitter {
        */
       this.emit('heartbeat');
 
+      clearTimeout(this._pingPongTimeout);  // ????
+      this._pingPongTimeout = null;        ///// ????   
       this._lastPingAt = new Date();
 
       return;
@@ -804,28 +854,28 @@ class TuyaDevice extends EventEmitter {
         this._setResolveAllowGet = undefined;
         delete this._resolvers[packet.sequenceN];
         this._expectRefreshResponseForSequenceN = undefined;
-      } else {
+      } else if (packet.sequenceN in this._resolvers) {
         // Call data resolver for sequence number
-        if (packet.sequenceN in this._resolvers) {
-          debug('Received DP_REFRESH response packet - resolve');
-          this._resolvers[packet.sequenceN](packet.payload);
 
-          // Remove resolver
-          delete this._resolvers[packet.sequenceN];
-          this._expectRefreshResponseForSequenceN = undefined;
-        } else if (this._expectRefreshResponseForSequenceN && this._expectRefreshResponseForSequenceN in this._resolvers) {
-          debug('Received DP_REFRESH response packet without data - resolve');
-          this._resolvers[this._expectRefreshResponseForSequenceN](packet.payload);
+        debug('Received DP_REFRESH response packet - resolve');
+        this._resolvers[packet.sequenceN](packet.payload);
 
-          // Remove resolver
-          delete this._resolvers[this._expectRefreshResponseForSequenceN];
-          this._expectRefreshResponseForSequenceN = undefined;
-        } else {
-          debug('Received DP_REFRESH response packet - no resolver found for sequence number' + packet.sequenceN);
-        }
+        // Remove resolver
+        delete this._resolvers[packet.sequenceN];
+        this._expectRefreshResponseForSequenceN = undefined;
+      } else if (this._expectRefreshResponseForSequenceN && this._expectRefreshResponseForSequenceN in this._resolvers) {
+        debug('Received DP_REFRESH response packet without data - resolve');
+        this._resolvers[this._expectRefreshResponseForSequenceN](packet.payload);
+
+        // Remove resolver
+        delete this._resolvers[this._expectRefreshResponseForSequenceN];
+        this._expectRefreshResponseForSequenceN = undefined;
+      } else {
+        debug('Received DP_REFRESH response packet - no resolver found for sequence number' + packet.sequenceN);
       }
+
       return;
-    }
+    }    
 
     if (packet.commandByte === CommandType.STATUS && packet.payload && packet.payload.dps && typeof packet.payload.dps[1] === 'undefined') {
       debug('Received DP_REFRESH packet.');

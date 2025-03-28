@@ -1,7 +1,7 @@
 {
   "name": "@demirdeniz/tuyapi-newgen",
-  "version": "8.0.5",
-  "description": "An easy-to-use New Gen API for devices that use Tuya's cloud services",
+  "version": "8.1.0",
+  "description": "An easy-to-use New Gen API for devices that use Tuya's cloud services (updated with Tuya 3.5 protocol)",
   "main": "index.js",
   "types": "index.d.ts",
   "files": [
@@ -38,7 +38,7 @@
   },
   "homepage": "https://github.com/MrCO0OL/tuyapi-newgen#readme",
   "dependencies": {
-    "debug": "^4.3.4",
+    "debug": "^4.3.7",
     "p-queue": "6.6.2",
     "p-retry": "4.6.2",
     "p-timeout": "3.2.0"
