@@ -103,7 +103,9 @@ class TuyaDevice extends EventEmitter {
       process.env.DEBUG = "TuyAPI-NewGen";
       debug("<<<<<<<<**********  Debug Enabled **********>>>>>>>>>");
       console.log("<<<<<< tried to enable debug lof >>>>>>");
-    }
+    } else
+      console.log("<<<<<< !!! debug log is NOT enabled !!! >>>>>>");
+      
 
     // Private instance variables
 
