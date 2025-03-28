@@ -98,9 +98,12 @@ class TuyaDevice extends EventEmitter {
     // Contains array of found devices when calling .find()
     this.foundDevices = [];
 
-    if (this.enableDebug)
+    if (this.enableDebug) {
       require('debug').enable('TuyAPI-NewGen');
-      //process.env.DEBUG = "TuyAPI-NewGen";
+      process.env.DEBUG = "TuyAPI-NewGen";
+      debug("<<<<<<<<**********  Debug Enabled **********>>>>>>>>>");
+      console.log("<<<<<< tried to enable debug lof >>>>>>");
+    }
 
     // Private instance variables
 
